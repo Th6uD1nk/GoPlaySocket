@@ -21,16 +21,20 @@ type Server struct {
 }
 
 func NewServer(port int) (*Server, error) {
+  fmt.Println("Creating UDP address...")
   addr := net.UDPAddr{
     Port: port,
     IP:   net.ParseIP("0.0.0.0"),
   }
-    
+  
+  fmt.Printf("Binding to %s:%d...\n", addr.IP, addr.Port)
   conn, err := net.ListenUDP("udp", &addr)
   if err != nil {
     return nil, err
   }
-    
+  
+  fmt.Println("UDP socket bound successfully")
+  
   return &Server{
     conn:    conn,
     clients: make(map[string]*Client),
@@ -106,7 +110,7 @@ func randomSpawn(id string, userType UserType, conn *net.UDPConn, minX, maxX, mi
 func (server *Server) Start() {
   defer server.conn.Close()
   
-  fmt.Printf("UDP server stated on port %d\n", server.conn.LocalAddr().(*net.UDPAddr).Port)
+  fmt.Printf("UDP server started on port %d\n", server.conn.LocalAddr().(*net.UDPAddr).Port)
   
   // clean inactive clients
   go func() {
@@ -167,6 +171,7 @@ func (server *Server) Start() {
 }
 
 func main() {
+  fmt.Println("=== RTGS Server ===")
   server, err := NewServer(8888)
   if err != nil {
     fmt.Printf("Error on create: %v\n", err)
