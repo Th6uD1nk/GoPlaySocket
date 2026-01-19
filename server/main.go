@@ -5,11 +5,13 @@ import (
   "net"
   "sync"
   "time"
+  "math/rand"
 )
 
 type Client struct {
-  addr      *net.UDPAddr
-  lastSeen  time.Time
+  addr     *net.UDPAddr
+  lastSeen time.Time
+  user     *User
 }
 
 type Server struct {
@@ -57,12 +59,16 @@ func (server *Server) listClients() {
   
   fmt.Println("\n=== Clients list ===")
   if len(server.clients) == 0 {
-    fmt.Println("No connected client")
+      fmt.Println("No connected client")
   } else {
     for key, client := range server.clients {
-      fmt.Printf("- %s (last activity: %s)\n", 
-        key, 
-        time.Since(client.lastSeen).Round(time.Second))
+      fmt.Printf("- %s\n", key)
+      fmt.Printf("  Type: %s\n", client.user.userType)
+      fmt.Printf("  Location: (%.2f, %.2f, %.2f)\n", 
+          client.user.location.x, client.user.location.y, client.user.location.z)
+      fmt.Printf("  Orientation: %.2f°\n", client.user.orientation)
+      fmt.Printf("  Active: %t\n", client.user.isActive)
+      fmt.Printf("  Last activity: %s\n", time.Since(client.lastSeen).Round(time.Second))
     }
   }
   fmt.Println("========================\n")
@@ -79,6 +85,22 @@ func (server *Server) cleanInactiveClients(timeout time.Duration) {
       delete(server.clients, key)
     }
   }
+}
+
+func randomSpawn(id string, userType UserType, conn *net.UDPConn, minX, maxX, minY, maxY, minZ, maxZ float32) *User {
+  location := Vector3{
+    x: minX + rand.Float32()*(maxX-minX),
+    y: minY + rand.Float32()*(maxY-minY),
+    z: minZ + rand.Float32()*(maxZ-minZ),
+  }
+  
+  orientation := rand.Float32() * 360.0
+  
+  user := NewUser(id, userType, conn)
+  user.location = location
+  user.orientation = orientation
+  
+  return user
 }
 
 func (server *Server) Start() {
@@ -113,6 +135,24 @@ func (server *Server) Start() {
       continue
     }
     
+    clientKey := addr.String()
+    if _, exists := server.clients[clientKey]; !exists {
+      user := randomSpawn(clientKey, UserTypePlayer, server.conn, 0, 100, 0, 10, 0, 100)
+      
+      client := &Client{
+        addr:     addr,
+        lastSeen: time.Now(),
+        user:     user,
+      }
+      
+      server.mu.Lock()
+      server.clients[clientKey] = client
+      server.mu.Unlock()
+    
+      fmt.Printf("+ new client spawned at (%.2f, %.2f, %.2f) orientation: %.2f\n",
+        user.location.x, user.location.y, user.location.z, user.orientation)
+    }
+
     server.addOrUpdateClient(addr)
     
     message := string(buffer[:nByte])
