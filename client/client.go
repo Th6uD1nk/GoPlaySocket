@@ -5,6 +5,7 @@ import (
   "fmt"
   "net"
   "time"
+  "strings"
 )
 
 type UDPClient struct {
@@ -40,13 +41,33 @@ type UserUpdate struct {
   IsActive    bool        `json:"is_active"`
 }
 
-func (c *UDPClient) StartReceiving() {
+func (client *UDPClient) displayUserCount() {
+  client.WorldState.mu.RLock()
+  defer client.WorldState.mu.RUnlock()
+
+  count := len(client.WorldState.Users)
+  fmt.Printf("- User count: %d users\n", count)
+}
+
+
+func (client *UDPClient) StartReceiving() {
+  
+  go func() {
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+    for range ticker.C {
+      client.displayUserCount()
+    }
+  }()
+
   go func() {
     buffer := make([]byte, 4096)
     for {
-      n, err := c.Conn.Read(buffer)
+      n, err := client.Conn.Read(buffer)
       if err != nil {
-        fmt.Printf("Receive error: %v\n", err)
+        errMessage := err.Error()
+        formatted := strings.ReplaceAll(errMessage, ": ", "\n\t")
+        fmt.Println("Receive error:\n\t" + formatted)
         continue
       }
       
@@ -57,32 +78,47 @@ func (c *UDPClient) StartReceiving() {
       }
       
       if msg.Type == "world_update" {
+        receivedIDs := map[string]bool{}
         for _, userUpdate := range msg.Users {
           user := &User{
-            ID:          userUpdate.ID,
-            UserType:    UserType(userUpdate.UserType),
-            Location:    Vec3{X: float64(userUpdate.Location[0]), Y: float64(userUpdate.Location[1]), Z: float64(userUpdate.Location[2])},
-            Orientation: userUpdate.Orientation,
-            IsActive:    userUpdate.IsActive,
-            LastUpdate:  time.Now(),
-            Color:       GetColorForUserType(UserType(userUpdate.UserType)),
+            ID:           userUpdate.ID,
+            UserType:     UserType(userUpdate.UserType),
+            Location:     Vec3{
+                            X: float64(userUpdate.Location[0]),
+                            Y: float64(userUpdate.Location[1]),
+                            Z: float64(userUpdate.Location[2]),
+                          },
+            Orientation:  userUpdate.Orientation,
+            IsActive:     userUpdate.IsActive,
+            LastUpdate:   time.Now(),
+            Color:        GetColorForUserType(UserType(userUpdate.UserType)),
           }
-          c.WorldState.UpdateUser(user)
+          client.WorldState.UpdateUser(user)
+          receivedIDs[user.ID] = true
         }
-        fmt.Printf("+ World updated: %d users\n", len(msg.Users)) // tmp
+
+        for id := range client.WorldState.Users {
+          if !receivedIDs[id] {
+            delete(client.WorldState.Users, id)
+            fmt.Printf("- User removed: %s\n", id)
+          }
+        }
+        
+        // fmt.Printf("+ World updated: %d users\n", len(msg.Users)) // tmp
       }
+      
     }
   }()
 }
 
-func (c *UDPClient) StartSending() {
+func (client *UDPClient) StartSending() {
   go func() {
     counter := 1
     ticker := time.NewTicker(2 * time.Second)
     defer ticker.Stop()
     for range ticker.C {
       message := fmt.Sprintf("Message %d", counter)
-      _, err := c.Conn.Write([]byte(message))
+      _, err := client.Conn.Write([]byte(message))
       if err != nil {
         fmt.Printf("Send error: %v\n", err)
         continue

@@ -173,10 +173,10 @@ func (server *Server) Start() {
   
   // clean inactive clients
   go func() {
-    ticker := time.NewTicker(10 * time.Second)
+    ticker := time.NewTicker(time.Second)
     defer ticker.Stop()
     for range ticker.C {
-      server.cleanInactiveClients(30 * time.Second)
+      server.cleanInactiveClients(10 * time.Second)
     }
   }()
   
