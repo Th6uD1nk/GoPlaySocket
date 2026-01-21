@@ -1,44 +1,41 @@
 package main
 
 import (
-  "github.com/go-gl/gl/v2.1/gl"
-  "github.com/go-gl/glfw/v3.3/glfw"
+  // "rtgs-client/rgl"
 )
 
 type Game struct {
   renderer   *Renderer
   worldState *WorldState
-  window     *glfw.Window
 }
 
-func NewGame(worldState *WorldState, window *glfw.Window) *Game {
+func NewGame(worldState *WorldState) *Game {
   return &Game{
     renderer:   NewRenderer(),
     worldState: worldState,
-    window:     window,
   }
 }
 
-func (g *Game) Draw() {
-  w, h := g.window.GetSize()
-  gl.Viewport(0, 0, int32(w), int32(h))
-  gl.ClearColor(0.118, 0.118, 0.157, 1.0)
-  gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  gl.Enable(gl.DEPTH_TEST)
+func (g *Game) Draw(width, height int) {
+  /*
+  rgl.Viewport(0, 0, int32(width), int32(height))
+  rgl.ClearColor(0.118, 0.118, 0.157, 1.0)
+  rgl.Clear(rgl.COLOR_BUFFER_BIT | rgl.DEPTH_BUFFER_BIT)
+  rgl.Enable(rgl.DEPTH_TEST)
 
-  aspect := float32(w) / float32(h)
+  aspect := float32(width) / float32(height)
   mvp := g.renderer.GetMVP(aspect)
 
   gridVerts := g.renderer.GetGridVertices(10)
-  g.renderer.DrawVertices(gridVerts, [4]float32{0.235, 0.235, 0.314, 1.0}, gl.LINES, mvp)
+  g.renderer.DrawVertices(gridVerts, [4]float32{0.235, 0.235, 0.314, 1.0}, rgl.LINES, mvp)
 
   for _, user := range g.worldState.GetUsers() {
     if !user.IsActive {
       continue
     }
-    
-    gl.Enable(gl.BLEND)
-    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+    rgl.Enable(rgl.BLEND)
+    rgl.BlendFunc(rgl.SRC_ALPHA, rgl.ONE_MINUS_SRC_ALPHA)
 
     pos := Vec3{
       X: user.Location.X + 0.5,
@@ -47,31 +44,22 @@ func (g *Game) Draw() {
     }
     cubeVerts := g.renderer.GetCubeVertices(pos)
     color := GetColorForUserType(user.UserType)
-    g.renderer.DrawVertices(
-      cubeVerts,
-      [4]float32{
-        float32(color[0]) / 255.0,
-        float32(color[1]) / 255.0,
-        float32(color[2]) / 255.0,
-        0.5,
-      },
-      gl.TRIANGLES,
-      mvp,
-    )
-    
+    g.renderer.DrawVertices(cubeVerts, [4]float32{
+      float32(color[0]) / 255.0,
+      float32(color[1]) / 255.0,
+      float32(color[2]) / 255.0,
+      0.5,
+    }, rgl.TRIANGLES, mvp)
+
     edges := g.renderer.GetCubeEdgesFromVertices(pos)
-    g.renderer.DrawVertices(
-      edges,
-      [4]float32{
-        float32(color[0]) / 255.0,
-        float32(color[1]) / 255.0,
-        float32(color[2]) / 255.0,
-        1.0,
-      },
-      gl.LINES,
-      mvp,
-    )
-    
-    gl.Disable(gl.BLEND)
+    g.renderer.DrawVertices(edges, [4]float32{
+      float32(color[0]) / 255.0,
+      float32(color[1]) / 255.0,
+      float32(color[2]) / 255.0,
+      1.0,
+    }, rgl.LINES, mvp)
+
+    rgl.Disable(rgl.BLEND)
   }
+  */
 }

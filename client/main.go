@@ -1,9 +1,11 @@
+//go:build !mobile
+
 package main
 
 import (
   "log"
   "runtime"
-  "github.com/go-gl/gl/v2.1/gl"
+  "rtgs-client/rgl"
   "github.com/go-gl/glfw/v3.3/glfw"
 )
 
@@ -25,7 +27,6 @@ func main() {
     log.Fatalf("Cannot create UDP client: %v", err)
   }
   defer client.Conn.Close()
-
   client.StartReceiving()
   client.StartSending()
 
@@ -46,15 +47,16 @@ func main() {
   window.MakeContextCurrent()
   glfw.SwapInterval(1)
 
-  if err := gl.Init(); err != nil {
+  if err := rgl.Init(); err != nil {
     panic(err)
   }
 
-  game := NewGame(worldState, window)
+  game := NewGame(worldState)
 
   // Main loop
   for !window.ShouldClose() {
-    game.Draw()
+    w, h := window.GetSize()
+    game.Draw(w, h)
 
     window.SwapBuffers()
     glfw.PollEvents()

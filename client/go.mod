@@ -9,4 +9,7 @@ require (
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20250301202403-da16c1255728
 )
 
-require github.com/go-gl/mathgl v1.2.0 // indirect
+require (
+	github.com/go-gl/mathgl v1.2.0 // indirect
+	golang.org/x/mobile v0.0.0-20260120165949-40bd9ace6ce4 // indirect
+)
