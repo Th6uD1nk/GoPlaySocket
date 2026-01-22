@@ -3,7 +3,10 @@
 package main
 
 import (
-  //"log"
+  "os"
+  "log"
+  "fmt"
+  "strings"
   "golang.org/x/mobile/app"
   "golang.org/x/mobile/event/lifecycle"
   "golang.org/x/mobile/event/paint"
@@ -12,11 +15,26 @@ import (
   "rtgs-client/rgl"
 )
 
+func loadConfig() (string, error) {
+  path := "/sdcard/Download/rtgs-config.txt"
+  data, err := os.ReadFile(path)
+  if err != nil {
+    fmt.Println("Can't read configuration file");
+    return "", err
+  }
+  return strings.TrimSpace(string(data)), nil
+}
+
 func main() {
   
   worldState := NewWorldState()
-/*
-  client, err := NewUDPClient("127.0.0.1:8888", worldState)
+
+  addr, err := loadConfig()
+  if err != nil {
+    log.Fatalf("Cannot create UDP client: %v", err)
+  }
+  
+  client, err := NewUDPClient(addr, worldState)
   if err != nil {
     log.Fatalf("Cannot create UDP client: %v", err)
   }
@@ -24,7 +42,7 @@ func main() {
 
   client.StartReceiving()
   client.StartSending()
-*/
+
   var game *Game
 
   app.Main(func(a app.App) {

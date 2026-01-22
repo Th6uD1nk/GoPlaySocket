@@ -58,6 +58,7 @@ func NewServer(port int) (*Server, error) {
   }, nil
 }
 
+/*
 func (server *Server) addOrUpdateClient(addr *net.UDPAddr) {
   server.mu.Lock()
   defer server.mu.Unlock()
@@ -73,6 +74,7 @@ func (server *Server) addOrUpdateClient(addr *net.UDPAddr) {
     fmt.Printf("+ New client: %s\n", addr.String())
   }
 }
+*/
 
 func (server *Server) listClients() {
   server.mu.RLock()
@@ -135,15 +137,17 @@ func (server *Server) broadcastWorldState() {
   }
   
   for _, client := range server.clients {
-    if client.user != nil {
-      worldUpdate.Users = append(worldUpdate.Users, UserData{
-        ID:          client.user.id,
-        UserType:    string(client.user.userType),
-        Location:    [3]float32{client.user.location.x, client.user.location.y, client.user.location.z},
-        Orientation: client.user.orientation,
-        IsActive:    client.user.isActive,
-      })
+    if client.user == nil {
+      fmt.Printf("WARNING: Client %s has NIL user!\n", client.addr.String())
+      continue
     }
+    worldUpdate.Users = append(worldUpdate.Users, UserData{
+      ID:          client.user.id,
+      UserType:    string(client.user.userType),
+      Location:    [3]float32{client.user.location.x, client.user.location.y, client.user.location.z},
+      Orientation: client.user.orientation,
+      IsActive:    client.user.isActive,
+    })
   }
   
   server.mu.RUnlock()
@@ -154,13 +158,16 @@ func (server *Server) broadcastWorldState() {
     fmt.Printf("JSON marshal error: %v\n", err)
     return
   }
-  
+
   // send to all clients
   server.mu.RLock()
   for _, client := range server.clients {
+    // fmt.Printf("- Sending %d bytes to %s\n", len(data), client.addr.String())
     _, err := server.conn.WriteToUDP(data, client.addr)
     if err != nil {
-      fmt.Printf("Broadcast error to %s: %v\n", client.addr.String(), err)
+      fmt.Printf("x Broadcast error to %s: %v\n", client.addr.String(), err)
+    } else {
+      // fmt.Printf("- Sent %d bytes to %s (key: %s)\n", n, client.addr.String(), key)
     }
   }
   server.mu.RUnlock()
@@ -208,33 +215,31 @@ func (server *Server) Start() {
     }
     
     clientKey := addr.String()
-    if _, exists := server.clients[clientKey]; !exists {
+    
+    server.mu.Lock()
+    client, exists := server.clients[clientKey]
+    if !exists {
       user := randomSpawn(clientKey, UserTypePlayer, server.conn, 0, 10, 0, 0, 0, 10)
       
-      client := &Client{
+      client = &Client{
         addr:     addr,
         lastSeen: time.Now(),
         user:     user,
       }
       
-      server.mu.Lock()
       server.clients[clientKey] = client
-      server.mu.Unlock()
-    
+      
       fmt.Printf("+ new client spawned at (%.2f, %.2f, %.2f) orientation: %.2f\n",
         user.location.x, user.location.y, user.location.z, user.orientation)
+    } else {
+      client.lastSeen = time.Now()
     }
-
-    server.addOrUpdateClient(addr)
+    server.mu.Unlock()
+    
+    // server.addOrUpdateClient(addr)
     
     message := string(buffer[:nByte])
     fmt.Printf("+ received from %s: %s\n", addr.String(), message)
-    
-    // response := fmt.Sprintf("ACK: %s", message)
-    // _, err = server.conn.WriteToUDP([]byte(response), addr)
-    // if err != nil {
-    //   fmt.Printf("Sent error: %v\n", err)
-    // }
   }
 }
 

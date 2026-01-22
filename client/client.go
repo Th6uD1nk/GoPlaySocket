@@ -14,19 +14,23 @@ type UDPClient struct {
 }
 
 func NewUDPClient(addr string, worldState *WorldState) (*UDPClient, error) {
+  
   serverAddr, err := net.ResolveUDPAddr("udp", addr)
   if err != nil {
     return nil, err
   }
+  
   conn, err := net.DialUDP("udp", nil, serverAddr)
   if err != nil {
     return nil, err
   }
+
   return &UDPClient{
     Conn:       conn,
     WorldState: worldState,
   }, nil
 }
+
 
 type ServerMessage struct {
   Type  string       `json:"type"`
@@ -49,7 +53,6 @@ func (client *UDPClient) displayUserCount() {
   fmt.Printf("- User count: %d users\n", count)
 }
 
-
 func (client *UDPClient) StartReceiving() {
   
   go func() {
@@ -63,8 +66,15 @@ func (client *UDPClient) StartReceiving() {
   go func() {
     buffer := make([]byte, 4096)
     for {
+      client.Conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+
       n, err := client.Conn.Read(buffer)
       if err != nil {
+        if ne, ok := err.(net.Error); ok && ne.Timeout() {
+          fmt.Println("UDP Read timeout: can't reach server")
+          continue
+        }
+        
         errMessage := err.Error()
         formatted := strings.ReplaceAll(errMessage, ": ", "\n\t")
         fmt.Println("Receive error:\n\t" + formatted)
