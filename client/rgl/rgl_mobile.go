@@ -2,6 +2,7 @@
 package rgl
 
 import (
+  "unsafe"
   gl "golang.org/x/mobile/gl"
 )
 
@@ -33,106 +34,161 @@ const (
   ONE_MINUS_SRC_ALPHA    = gl.ONE_MINUS_SRC_ALPHA
 )
 
-func GetUniformLocation(program gl.Program, name string) gl.Uniform {
-  return glctx.GetUniformLocation(program, name)
+func Str(s string) string {
+  return s
 }
 
-func GetAttribLocation(program gl.Program, name string) gl.Attrib {
-  return glctx.GetAttribLocation(program, name)
+func GetUniformLocation(program uint32, name string) int32 {
+  uniform := glctx.GetUniformLocation(gl.Program{Value: program}, name)
+  return int32(uniform.Value)
 }
 
-func CreateProgram() gl.Program {
-  return glctx.CreateProgram()
+func GetAttribLocation(program uint32, name string) int32 {
+  attrib := glctx.GetAttribLocation(gl.Program{Value: program}, name)
+  return int32(attrib.Value)
 }
 
-func AttachShader(program gl.Program, shader gl.Shader) {
-  glctx.AttachShader(program, shader)
+func CreateProgram() uint32 {
+  program := glctx.CreateProgram()
+  return uint32(program.Value)
 }
 
-func LinkProgram(program gl.Program) {
-  glctx.LinkProgram(program)
+func AttachShader(program uint32, shader uint32) {
+  glctx.AttachShader(
+    gl.Program{Value: program}, 
+    gl.Shader{Value: shader},
+  )
 }
 
-func GetProgramiv(program gl.Program, pname gl.Enum, params *int32) {
-  *params = int32(glctx.GetProgrami(program, pname))
+func LinkProgram(program uint32) {
+  glctx.LinkProgram(gl.Program{Value: program})
 }
 
-func GetProgramInfoLog(program gl.Program) string {
-  return glctx.GetProgramInfoLog(program)
+func CreateShader(shaderType uint32) uint32 {
+  shader := glctx.CreateShader(gl.Enum(shaderType))
+  return uint32(shader.Value)
 }
 
-func CreateShader(typ gl.Enum) gl.Shader {
-  return glctx.CreateShader(typ)
+func Strs(sources ...string) (**uint8, func()) {
+  lastShaderSource = sources[0]
+  return nil, func() {}
 }
 
-func ShaderSource(shader gl.Shader, source string) {
-  glctx.ShaderSource(shader, source)
+var lastShaderSource string
+
+func ShaderSource(shader uint32, count int32, source **uint8, length *int32) {
+  glctx.ShaderSource(gl.Shader{Value: shader}, lastShaderSource)
 }
 
-func CompileShader(shader gl.Shader) {
-  glctx.CompileShader(shader)
+func CompileShader(shader uint32) {
+  glctx.CompileShader(gl.Shader{Value: shader})
 }
 
-func GetShaderiv(shader gl.Shader, pname gl.Enum, params *int32) {
-  *params = int32(glctx.GetShaderi(shader, pname))
+func DeleteShader(shader uint32) {
+  glctx.DeleteShader(gl.Shader{Value: shader})
 }
 
-func GetShaderInfoLog(shader gl.Shader) string {
-  return glctx.GetShaderInfoLog(shader)
+func GetProgramiv(program uint32, pname uint32, params *int32) {
+  *params = int32(glctx.GetProgrami(gl.Program{Value: program}, gl.Enum(pname)))
 }
 
-func UseProgram(program gl.Program) {
-  glctx.UseProgram(program)
+func GetProgramInfoLog(program uint32, maxLength int32, length *int32, infoLog *byte) string {
+  return glctx.GetProgramInfoLog(gl.Program{Value: program})
 }
 
-func UniformMatrix4fv(location gl.Uniform, data []float32) {
-  glctx.UniformMatrix4fv(location, data)
+func GetShaderiv(shader uint32, pname uint32, params *int32) {
+  *params = int32(glctx.GetShaderi(gl.Shader{Value: shader}, gl.Enum(pname)))
 }
 
-func Uniform4f(location gl.Uniform, v0, v1, v2, v3 float32) {
-  glctx.Uniform4f(location, v0, v1, v2, v3)
+func GetShaderInfoLog(shader uint32, maxLength int32, length *int32, infoLog *byte) string {
+  return glctx.GetShaderInfoLog(gl.Shader{Value: shader})
 }
 
-func GenBuffers(n int) []gl.Buffer {
-  bufs := make([]gl.Buffer, n)
+func UseProgram(program uint32) {
+  glctx.UseProgram(gl.Program{Value: program})
+}
+
+func DeleteProgram(program uint32) {
+  glctx.DeleteProgram(gl.Program{Value: program})
+}
+
+func UniformMatrix4fv(location int32, count int32, transpose bool, value *float32) {
+  data := unsafe.Slice(value, 16*count)
+  glctx.UniformMatrix4fv(gl.Uniform{Value: location}, data)
+}
+
+func Uniform4f(location int32, v0, v1, v2, v3 float32) {
+  glctx.Uniform4f(gl.Uniform{Value: location}, v0, v1, v2, v3)
+}
+
+func GenBuffers(n int32, buffers *uint32) {
+  bufs := unsafe.Slice(buffers, n)
   for i := range bufs {
-    bufs[i] = glctx.CreateBuffer()
-  }
-  return bufs
-}
-
-func BindBuffer(target gl.Enum, buffer gl.Buffer) {
-  glctx.BindBuffer(target, buffer)
-}
-
-func BufferData(target gl.Enum, data []byte, usage gl.Enum) {
-  glctx.BufferData(target, data, usage)
-}
-
-func EnableVertexAttribArray(index gl.Attrib) {
-  glctx.EnableVertexAttribArray(index)
-}
-
-func VertexAttribPointer(index gl.Attrib, size int, xtype gl.Enum, normalized bool, stride int, offset int) {
-  glctx.VertexAttribPointer(index, size, xtype, normalized, stride, offset)
-}
-
-func DrawArrays(mode gl.Enum, first, count int) {
-  glctx.DrawArrays(mode, first, count)
-}
-
-func DisableVertexAttribArray(index gl.Attrib) {
-  glctx.DisableVertexAttribArray(index)
-}
-
-func DeleteBuffers(buffers []gl.Buffer) {
-  for _, buf := range buffers {
-    glctx.DeleteBuffer(buf)
+    buf := glctx.CreateBuffer()
+    bufs[i] = uint32(buf.Value)
   }
 }
 
-func Viewport(x, y, width, height int) {
-  glctx.Viewport(x, y, width, height)
+func BindBuffer(target uint32, buffer uint32) {
+  glctx.BindBuffer(gl.Enum(target), gl.Buffer{Value: buffer})
+}
+
+func BufferData(target uint32, size int, data unsafe.Pointer, usage uint32) {
+
+  var byteData []byte
+  if data != nil {
+    byteData = unsafe.Slice((*byte)(data), size)
+  } else {
+    byteData = make([]byte, size)
+  }
+  glctx.BufferData(gl.Enum(target), byteData, gl.Enum(usage))
+}
+
+func Ptr(data interface{}) unsafe.Pointer {
+
+  switch v := data.(type) {
+  case []float32:
+    if len(v) > 0 {
+      return unsafe.Pointer(&v[0])
+    }
+  case []uint16:
+    if len(v) > 0 {
+      return unsafe.Pointer(&v[0])
+    }
+  case []byte:
+    if len(v) > 0 {
+      return unsafe.Pointer(&v[0])
+    }
+  }
+  return nil
+}
+
+func EnableVertexAttribArray(index uint32) {
+  glctx.EnableVertexAttribArray(gl.Attrib{Value: uint(index)})
+}
+
+func VertexAttribPointer(index uint32, size int32, xtype uint32, normalized bool, stride int32, pointer unsafe.Pointer) {
+  offset := int(uintptr(pointer))
+  glctx.VertexAttribPointer(gl.Attrib{Value: uint(index)}, int(size), gl.Enum(xtype), normalized, int(stride), offset)
+}
+
+func DrawArrays(mode uint32, first int32, count int32) {
+  glctx.DrawArrays(gl.Enum(mode), int(first), int(count))
+}
+
+func DisableVertexAttribArray(index uint32) {
+  glctx.DisableVertexAttribArray(gl.Attrib{Value: uint(index)})
+}
+
+func DeleteBuffers(n int32, buffers *uint32) {
+  bufs := unsafe.Slice(buffers, n)
+  for _, buf := range bufs {
+    glctx.DeleteBuffer(gl.Buffer{Value: buf})
+  }
+}
+
+func Viewport(x, y, width, height int32) {
+  glctx.Viewport(int(x), int(y), int(width), int(height))
 }
 
 func ClearColor(r, g, b, a float32) {

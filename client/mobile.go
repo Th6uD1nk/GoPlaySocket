@@ -4,11 +4,12 @@ package main
 
 import (
   "log"
+
   "golang.org/x/mobile/app"
   "golang.org/x/mobile/event/lifecycle"
   "golang.org/x/mobile/event/paint"
   "golang.org/x/mobile/event/size"
-  "rtgs-client/rgl"
+  "golang.org/x/mobile/gl"
 )
 
 func main() {
@@ -20,12 +21,12 @@ func main() {
     log.Fatalf("Cannot create UDP client: %v", err)
   }
   defer client.Conn.Close()
+
   client.StartReceiving()
   client.StartSending()
 
   game := NewGame(worldState)
 
-  // Main loop
   app.Main(func(a app.App) {
     var glctx gl.Context
     var sz size.Event
@@ -37,7 +38,8 @@ func main() {
         if e.To == lifecycle.StageDead {
           return
         }
-        if e.Crosses(lifecycle.StageAlive) && glctx == nil {
+
+        if e.From < lifecycle.StageAlive && e.To >= lifecycle.StageAlive && glctx == nil {
           var ok bool
           glctx, ok = e.DrawContext.(gl.Context)
           if !ok {
@@ -50,14 +52,12 @@ func main() {
 
       case paint.Event:
         if glctx == nil {
-          a.EndPaint(e)
           continue
         }
 
         game.Draw(int(sz.WidthPx), int(sz.HeightPx))
 
-        glctx.Publish() // swap buffers
-        a.EndPaint(e)
+        a.Send(paint.Event{})
       }
     }
   })

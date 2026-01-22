@@ -1,3 +1,4 @@
 wasm_exec.js
 game.wasm
 rtgs-client
+*.apk

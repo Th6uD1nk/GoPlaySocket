@@ -1,8 +1,8 @@
 package main
 
 import (
-  //"fmt"
-  // "log"
+  "fmt"
+  "log"
   "rtgs-client/rgl"
   "github.com/go-gl/mathgl/mgl32"
 )
@@ -101,7 +101,7 @@ func (r *Renderer) GetGridVertices(gridSize int) []float32 {
 }
 
 func (r *Renderer) initShaders() {
-  /*
+  
   vertexSrc := 
   `
     attribute vec3 aPosition;
@@ -128,24 +128,24 @@ func (r *Renderer) initShaders() {
   r.mvpLoc = rgl.GetUniformLocation(program, rgl.Str("uMVP\x00"))
   r.colorLoc = rgl.GetUniformLocation(program, rgl.Str("uColor\x00"))
   r.positionLoc = uint32(rgl.GetAttribLocation(program, rgl.Str("aPosition\x00")))
-  */
 }
 
 func compileProgram(vertexSrc, fragmentSrc string) (uint32, error) {
-/*  vertexShader, err := compileShader(vertexSrc+"\x00", rgl.VERTEX_SHADER)
+  vertexShader, err := compileShader(vertexSrc+"\x00", rgl.VERTEX_SHADER)
   if err != nil {
     return 0, err
   }
+  
   fragmentShader, err := compileShader(fragmentSrc+"\x00", rgl.FRAGMENT_SHADER)
   if err != nil {
     return 0, err
   }
-*/
+
   program := rgl.CreateProgram()
-  /*rgl.AttachShader(program, vertexShader)
+  rgl.AttachShader(program, vertexShader)
   rgl.AttachShader(program, fragmentShader)
   rgl.LinkProgram(program)
-
+  
   var status int32
   rgl.GetProgramiv(program, rgl.LINK_STATUS, &status)
   if status == rgl.FALSE {
@@ -154,19 +154,19 @@ func compileProgram(vertexSrc, fragmentSrc string) (uint32, error) {
     log := make([]byte, logLength+1)
     rgl.GetProgramInfoLog(program, logLength, nil, &log[0])
     return 0, fmt.Errorf("failed to link program: %s", log)
-  }*/
+  }
   return program, nil
 }
 
 func compileShader(source string, shaderType uint32) (uint32, error) {
   shader := rgl.CreateShader(shaderType)
   
-  /*csources, free := rgl.Strs(source)
+  csources, free := rgl.Strs(source)
   defer free()
   
   rgl.ShaderSource(shader, 1, csources, nil)
   rgl.CompileShader(shader)
-
+  
   var status int32
   rgl.GetShaderiv(shader, rgl.COMPILE_STATUS, &status)
   if status == rgl.FALSE {
@@ -175,7 +175,7 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
     log := make([]byte, logLength+1)
     rgl.GetShaderInfoLog(shader, logLength, nil, &log[0])
     return 0, fmt.Errorf("failed to compile shader: %s", log)
-  }*/
+  }
   return shader, nil
 }
 
@@ -193,7 +193,7 @@ func (r *Renderer) GetMVP(aspect float32) mgl32.Mat4 {
 }
 
 func (r *Renderer) DrawVertices(vertices []float32, color [4]float32, mode uint32, mvp mgl32.Mat4) {
-/*
+
   rgl.UseProgram(r.program)
 
   data := mvp[:]
@@ -205,6 +205,7 @@ func (r *Renderer) DrawVertices(vertices []float32, color [4]float32, mode uint3
   rgl.BindBuffer(rgl.ARRAY_BUFFER, vbo)
   rgl.BufferData(rgl.ARRAY_BUFFER, len(vertices)*4, rgl.Ptr(vertices), rgl.STATIC_DRAW)
 
+
   rgl.EnableVertexAttribArray(r.positionLoc)
   rgl.VertexAttribPointer(r.positionLoc, 3, rgl.FLOAT, false, 0, nil)
 
@@ -213,5 +214,5 @@ func (r *Renderer) DrawVertices(vertices []float32, color [4]float32, mode uint3
   rgl.DisableVertexAttribArray(r.positionLoc)
   rgl.BindBuffer(rgl.ARRAY_BUFFER, 0)
   rgl.DeleteBuffers(1, &vbo)
-  */
+
 }

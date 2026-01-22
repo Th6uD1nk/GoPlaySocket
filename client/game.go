@@ -1,7 +1,7 @@
 package main
 
 import (
-  // "rtgs-client/rgl"
+  "rtgs-client/rgl"
 )
 
 type Game struct {
@@ -17,12 +17,12 @@ func NewGame(worldState *WorldState) *Game {
 }
 
 func (g *Game) Draw(width, height int) {
-  /*
+  
   rgl.Viewport(0, 0, int32(width), int32(height))
   rgl.ClearColor(0.118, 0.118, 0.157, 1.0)
   rgl.Clear(rgl.COLOR_BUFFER_BIT | rgl.DEPTH_BUFFER_BIT)
   rgl.Enable(rgl.DEPTH_TEST)
-
+  
   aspect := float32(width) / float32(height)
   mvp := g.renderer.GetMVP(aspect)
 
@@ -61,5 +61,4 @@ func (g *Game) Draw(width, height int) {
 
     rgl.Disable(rgl.BLEND)
   }
-  */
 }
