@@ -25,7 +25,7 @@ Please refer to the individual README files in the `client` and `server` directo
 
 ### overall next steps
 
-- camera
+- camera (WIP)
 - world generation
 - player control and world state updates
 - gameplay

@@ -17,17 +17,28 @@ type Renderer struct {
   mvpLoc      int32
   colorLoc    int32
   positionLoc uint32
-  cameraDist  float32
-  angleX      float32
-  angleY      float32
+  camera      *Camera
+  
+  // cameraDist  float32
+  // angleX      float32
+  // angleY      float32
 }
 
 func NewRenderer(shaders *Shaders) *Renderer {
+  camera := NewCamera(
+    mgl32.Vec3{18, 10, 18}, // pos
+    mgl32.Vec3{0, 0, -1}, // dir
+  );
+  camera.RotateDown(20.0);
+  camera.RotateLeft(45.0);
+    
   r := &Renderer{
-    cameraDist: 30,
-    angleX:     45,
-    angleY:     12,
+    camera: camera,
+    // cameraDist: 30,
+    // angleX:     45,
+    // angleY:     12,
   }
+  
   r.initShaders(shaders)
   return r
 }
@@ -173,6 +184,7 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
   return shader, nil
 }
 
+/*
 func (r *Renderer) GetMVP(aspect float32) mgl32.Mat4 {
 
   proj := mgl32.Perspective(mgl32.DegToRad(45), aspect, 0.1, 100.0)
@@ -183,6 +195,20 @@ func (r *Renderer) GetMVP(aspect float32) mgl32.Mat4 {
 
   model := mgl32.Ident4()
 
+  return proj.Mul4(view).Mul4(model)
+}
+*/
+
+func (r *Renderer) UpdateCamera() {
+  r.camera.Update()
+}
+
+func (r *Renderer) GetMVP(aspect float32) mgl32.Mat4 {
+  
+  proj := mgl32.Perspective(mgl32.DegToRad(45), aspect, 0.1, 100.0)
+  view := r.camera.GetViewMatrix()
+  model := mgl32.Ident4()
+  
   return proj.Mul4(view).Mul4(model)
 }
 

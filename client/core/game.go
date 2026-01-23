@@ -24,6 +24,8 @@ func (g *Game) Draw(width, height int) {
   rgl.Enable(rgl.DEPTH_TEST)
   
   aspect := float32(width) / float32(height)
+  
+  g.renderer.UpdateCamera()
   mvp := g.renderer.GetMVP(aspect)
 
   gridVerts := g.renderer.GetGridVertices(10)
