@@ -1,5 +1,15 @@
 # RTGS Client
 
+## rtgs-config.txt
+
+Create a file named `rtgs-config.txt` at the root of the client folder.
+
+Add your local network address, for example:
+
+```txt
+192.168.xx.xx:8888
+```
+
 ## Run the client
 
 ```bash
